@@ -44,7 +44,6 @@ $ ls -l /dev/sd*
 ```
 他のデバイスを表示している可能性があるので確認が必要(blkidコマンド等)
 
-
 ### USBデバイスのフォーマット
 
 RAID用に記憶媒体をフォーマットする。
@@ -87,3 +86,25 @@ KERNEL=="sd*", SUBSYSTEMS=="usb", ATTRS{serial}=="01013c...", SYMLINK+="myusb1%n
 ```
 
 設定後、OS再起動すると、```/dev/myusb1```、 ```/dev/myusb11```といったデバイスが追加される。
+
+### RAID構築
+
+mdadmコマンドを使用し、USBメモリ2本にてraid0を構築(デバイス名は/dev/md0)。ext4でフォーマット。
+
+```sh
+$ mdadm -C /dev/md0 -l 0 -n 2 /dev/myusb[12]1
+$ mkfs -t ext4 /dev/md0
+```
+
+最後に、RAIDの情報をmdadm.confに追記する。
+```sh
+$ mdadm --detail --scan
+ARRAY /dev/md0 metadata=1.2 name=raspberrypi:0 UUID=******
+```
+
+上記コマンドで出力された内容を、`mdadm.conf`に追記する。
+
+**/etc/mdadm/mdadm.conf**
+```sh
+ARRAY /dev/md0 metadata=1.2 name=raspberrypi:0 UUID=******
+```
